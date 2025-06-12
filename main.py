@@ -5,6 +5,9 @@ import time
 import signal
 import subprocess
 import openai
+from openai import OpenAI
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY", ""))
 from dotenv import load_dotenv
 
 load_dotenv()  # pick up .env for MODEL, ITER_MODEL, etc.
@@ -12,8 +15,8 @@ load_dotenv()  # pick up .env for MODEL, ITER_MODEL, etc.
 SERVER_URL = "http://127.0.0.1:5000"
 CHAT_ENDPOINT = f"{SERVER_URL}/v1/chat/completions"
 
-openai.api_key  = os.getenv("OPENAI_API_KEY", "")
-openai.api_base = SERVER_URL
+# TODO: The 'openai.api_base' option isn't read in the client API. You will need to pass it when you instantiate the client, e.g. 'OpenAI(base_url=SERVER_URL)'
+# openai.api_base = SERVER_URL
 
 def start_server():
     # Launch app.py in background
@@ -46,10 +49,8 @@ def cli_loop():
             break
 
         try:
-            resp = openai.ChatCompletion.create(
-                model=model,
-                messages=[{"role": "user", "content": prompt}]
-            )
+            resp = client.chat.completions.create(model=model,
+            messages=[{"role": "user", "content": prompt}])
             msg = resp.choices[0].message.content
             print("Assistant:", msg, "\n")
         except Exception as e:
