@@ -4,19 +4,19 @@ import sys
 import time
 import signal
 import subprocess
+from dotenv import load_dotenv
 import openai
 from openai import OpenAI
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY", ""))
-from dotenv import load_dotenv
-
-load_dotenv()  # pick up .env for MODEL, ITER_MODEL, etc.
+load_dotenv()  # pick up .env for OPENAI_API_KEY
 
 SERVER_URL = "http://127.0.0.1:5000"
-CHAT_ENDPOINT = f"{SERVER_URL}/v1/chat/completions"
+client = OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY", ""),
+    base_url=SERVER_URL
+)
 
-# TODO: The 'openai.api_base' option isn't read in the client API. You will need to pass it when you instantiate the client, e.g. 'OpenAI(base_url=SERVER_URL)'
-# openai.api_base = SERVER_URL
+CHAT_ENDPOINT = f"{SERVER_URL}/v1/chat/completions"
 
 def start_server():
     # Launch app.py in background
