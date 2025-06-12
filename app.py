@@ -40,15 +40,29 @@ def chat_completions():
         for f in concurrent.futures.as_completed(futures):
             iter_responses.append(f.result())
 
-    # 2) build judger prompt: a system message + original messages + each iteration’s output
-    judger_msgs = [
-        {"role": "system", "content": "Judge between these solutions for the previous chat output"}
+    # 2) build judger msgs as:
+    #   system: system prompt
+    #   user:  the original user prompt
+    #   user:  all assistant outputs concatenated
+    # extract the first user prompt from the incoming messages
+    user_msgs = [m["content"] for m in orig_messages if m["role"] == "user"]
+    first_user = user_msgs[0] if user_msgs else ""
+
+    # collect all iteration outputs
+    assistant_outputs = [
+        resp["choices"][0]["message"]["content"]
+        for resp in iter_responses
     ]
-    judger_msgs.extend(orig_messages)
-    for resp in iter_responses:
-        # assume standard chat response shape
-        content = resp["choices"][0]["message"]["content"]
-        judger_msgs.append({"role": "assistant", "content": content})
+    combined_assistant = "\n\n".join(assistant_outputs)
+
+    judger_msgs = [
+        {
+            "role": "system",
+            "content": "Judge between these solutions for the previous chat output"
+        },
+        {"role": "user", "content": first_user},
+        {"role": "user", "content": combined_assistant},
+    ]
 
     # call JUDGER_MODEL once, return its answer
     judger_payload = {
