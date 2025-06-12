@@ -4,13 +4,16 @@ import sys
 import time
 import signal
 import subprocess
-import requests
+import openai
 from dotenv import load_dotenv
 
 load_dotenv()  # pick up .env for MODEL, ITER_MODEL, etc.
 
 SERVER_URL = "http://127.0.0.1:5000"
 CHAT_ENDPOINT = f"{SERVER_URL}/v1/chat/completions"
+
+openai.api_key  = os.getenv("OPENAI_API_KEY", "")
+openai.api_base = SERVER_URL
 
 def start_server():
     # Launch app.py in background
@@ -42,18 +45,15 @@ def cli_loop():
         if not prompt or prompt.lower() in ("exit", "quit"):
             break
 
-        payload = {
-            "model": model,
-            "messages": [{"role": "user", "content": prompt}]
-        }
-        r = requests.post(CHAT_ENDPOINT, json=payload)
-        if r.ok:
-            resp = r.json()
-            # assume chat response format
-            msg = resp["choices"][0]["message"]["content"]
+        try:
+            resp = openai.ChatCompletion.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            msg = resp.choices[0].message.content
             print("Assistant:", msg, "\n")
-        else:
-            print(f"Error {r.status_code}: {r.text}\n")
+        except Exception as e:
+            print("Error:", e, "\n")
 
 def main():
     server = start_server()
