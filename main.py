@@ -19,20 +19,20 @@ client = OpenAI(
 CHAT_ENDPOINT = f"{SERVER_URL}/v1/chat/completions"
 
 def start_server():
-    # Launch app.py in background
     p = subprocess.Popen(
         [sys.executable, "app.py"],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
+        bufsize=1  # Line-buffered output
     )
-    # Wait until Flask signals it’s ready
     while True:
         line = p.stdout.readline()
         if not line:
             break
-        print(line, end="")        # echo server log
-        if "Running on" in line:
+        print(line, end="")
+        # Changed to match the complete serving message including port number
+        if ":5000" in line and "Running on" in line:
             break
     return p
 
