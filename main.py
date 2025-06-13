@@ -10,13 +10,11 @@ from openai import OpenAI
 
 load_dotenv()  # pick up .env for OPENAI_API_KEY
 
-SERVER_URL = "http://127.0.0.1:5000"
+SERVER_URL = "http://127.0.0.1:5000/v1"
 client = OpenAI(
     api_key=os.getenv("OPENAI_API_KEY", ""),
     base_url=SERVER_URL
 )
-
-CHAT_ENDPOINT = f"{SERVER_URL}/v1/chat/completions"
 
 def start_server():
     p = subprocess.Popen(
