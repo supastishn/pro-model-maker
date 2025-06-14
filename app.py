@@ -77,7 +77,7 @@ def chat_completions():
     judger_msgs = [
         {
             "role": "system",
-            "content": "Judge between these solutions for the previous chat output"
+            "content": "Make an optimized solution from the possible solutions based on the user's input."
         },
         {"role": "user", "content": "User's Input:\n" + first_user},
         {"role": "user", "content": "Possible Solutions:\n" + combined_assistant},
