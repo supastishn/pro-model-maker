@@ -22,23 +22,18 @@ def wait_for_server(url, timeout=10):
 class TestFlaskApp(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        # Set environment variables for the server
+        # Set environment variables for the tests (does not affect running server)
         os.environ['MODEL'] = 'test-model'
         os.environ['ITER_MODEL'] = 'test-iter-model'
         os.environ['JUDGER_MODEL'] = 'test-judger-model'
         os.environ['NUM_ITERS'] = '2'
-        # Start the server
-        cls.server = subprocess.Popen([sys.executable, "main.py"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        # Wait for the server to be ready
         wait_for_server(SERVER_URL)
         time.sleep(1)  # Give a little extra time for server to be ready
 
     @classmethod
     def tearDownClass(cls):
-        cls.server.terminate()
-        try:
-            cls.server.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            cls.server.kill()
+        pass
 
     def test_text_completion(self):
         """Test /v1/completions endpoint"""
