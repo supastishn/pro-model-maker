@@ -96,13 +96,6 @@ def chat_completions():
     # Convert ModelResponse (pydantic) to dict for Flask jsonify
     return jsonify(judger_response.dict())
 
-@app.route('/v1/completions', methods=['POST'])
-def text_completions():
-    data = request.json
-    data = override_model_name(data)
-    response = completion(**data)
-    # Convert ModelResponse (pydantic) to dict for Flask jsonify
-    return jsonify(response.dict())
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
