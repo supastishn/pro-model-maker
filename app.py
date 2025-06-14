@@ -119,7 +119,7 @@ def chat_completions():
     judger_msgs = [
         {
             "role": "system",
-            "content": "Make an optimized solution from the possible solutions based on the user's input. Use sequential thinking and tool use for deep analysis."
+            "content": "Make an optimized solution from the possible solutions based on the user's input."
         },
         {"role": "user", "content": "System prompt of the user: " + user_system_prompt},
         {"role": "user", "content": "User's Input:\n" + first_user},
