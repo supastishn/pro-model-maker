@@ -84,6 +84,10 @@ def chat_completions():
     user_msgs = [m["content"] for m in orig_messages if m["role"] == "user"]
     first_user = user_msgs[0] if user_msgs else ""
 
+    # extract the first system prompt from the incoming messages
+    system_msgs = [m["content"] for m in orig_messages if m["role"] == "system"]
+    user_system_prompt = system_msgs[0] if system_msgs else ""
+
     # collect all iteration outputs
     assistant_outputs = [
         resp["choices"][0]["message"]["content"]
@@ -117,6 +121,7 @@ def chat_completions():
             "role": "system",
             "content": "Make an optimized solution from the possible solutions based on the user's input. Use sequential thinking and tool use for deep analysis."
         },
+        {"role": "user", "content": "System prompt of the user: " + user_system_prompt},
         {"role": "user", "content": "User's Input:\n" + first_user},
         {"role": "user", "content": "Possible Solutions:\n" + combined_assistant},
         {"role": "user", "content": "Sequential Thinking Steps:\n" + "\n".join([s["thought"] for s in steps])}
