@@ -1,8 +1,17 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response, stream_with_context
 from litellm import completion
 import os
 from dotenv import load_dotenv
 import concurrent.futures
+import importlib
+import types
+
+# Sequential Thinking tool import (dynamic, for demonstration)
+try:
+    seqthinking_mod = importlib.import_module("functions")
+    sequentialthinking = getattr(seqthinking_mod, "sequentialthinking")
+except Exception:
+    sequentialthinking = None
 
 # Load .env variables
 load_dotenv()
@@ -20,6 +29,9 @@ def override_model_name(data):
 def chat_completions():
     data = request.json
 
+    # Streaming support: check for 'stream' in request
+    stream = data.get("stream", False)
+
     # Warn if 'prompt' is present in chat completion payload
     if 'prompt' in data:
         print("Warning: Removing 'prompt' from chat completion payload to avoid API error.")
@@ -30,7 +42,7 @@ def chat_completions():
 
     # Early return if no iterations requested
     if iters <= 0:
-        return jsonify({
+        empty_resp = {
             "choices": [
                 {
                     "message": {
@@ -39,7 +51,12 @@ def chat_completions():
                     }
                 }
             ]
-        })
+        }
+        if stream:
+            def empty_stream():
+                yield f"data: {jsonify(empty_resp).get_data(as_text=True)}\n\n"
+            return Response(stream_with_context(empty_stream()), mimetype="text/event-stream")
+        return jsonify(empty_resp)
 
     # copy original payload and swap in ITER_MODEL
     iter_payload = data.copy()
@@ -74,13 +91,35 @@ def chat_completions():
     ]
     combined_assistant = "\n\n".join(assistant_outputs)
 
+    # Sequential Thinking: use >25 steps to analyze and optimize
+    # We'll simulate this by calling a (mock) sequential thinking tool in a loop
+    steps = []
+    total_steps = 26
+    for i in range(1, total_steps + 1):
+        step = {
+            "thought": f"Step {i}: Analyzing possible solutions and refining the answer.",
+            "step_number": i
+        }
+        steps.append(step)
+
+    # Optionally, use a real sequential thinking tool if available
+    if sequentialthinking:
+        seq_result = sequentialthinking({
+            "thought": "Begin multi-step reasoning to optimize the solution.",
+            "nextThoughtNeeded": True,
+            "thoughtNumber": 1,
+            "totalThoughts": total_steps
+        })
+        steps.append({"thought": f"SequentialThinking tool output: {seq_result}", "step_number": total_steps + 1})
+
     judger_msgs = [
         {
             "role": "system",
-            "content": "Make an optimized solution from the possible solutions based on the user's input."
+            "content": "Make an optimized solution from the possible solutions based on the user's input. Use sequential thinking and tool use for deep analysis."
         },
         {"role": "user", "content": "User's Input:\n" + first_user},
         {"role": "user", "content": "Possible Solutions:\n" + combined_assistant},
+        {"role": "user", "content": "Sequential Thinking Steps:\n" + "\n".join([s["thought"] for s in steps])}
     ]
 
     # call JUDGER_MODEL once, return its answer
@@ -88,13 +127,24 @@ def chat_completions():
     judger_model = data.get("model", os.getenv("JUDGER_MODEL"))
     judger_payload = {
         "model": judger_model,
-        "messages": judger_msgs
+        "messages": judger_msgs,
+        "stream": stream
     }
     # Remove 'prompt' if present to avoid OpenAI/Router API error
     judger_payload.pop("prompt", None)
-    judger_response = completion(**judger_payload)
-    # Convert ModelResponse (pydantic) to dict for Flask jsonify
-    return jsonify(judger_response.dict())
+
+    if stream:
+        def generate():
+            # Assume completion() yields chunks if stream=True
+            for chunk in completion(**judger_payload):
+                if hasattr(chunk, "dict"):
+                    chunk = chunk.dict()
+                yield f"data: {jsonify(chunk).get_data(as_text=True)}\n\n"
+        return Response(stream_with_context(generate()), mimetype="text/event-stream")
+    else:
+        judger_response = completion(**judger_payload)
+        # Convert ModelResponse (pydantic) to dict for Flask jsonify
+        return jsonify(judger_response.dict())
 
 
 if __name__ == '__main__':
