@@ -79,8 +79,8 @@ def chat_completions():
             "role": "system",
             "content": "Judge between these solutions for the previous chat output"
         },
-        {"role": "user", "content": first_user},
-        {"role": "user", "content": combined_assistant},
+        {"role": "user", "content": "User's Input:\n" + first_user},
+        {"role": "user", "content": "Possible Solutions:\n" + combined_assistant},
     ]
 
     # call JUDGER_MODEL once, return its answer
