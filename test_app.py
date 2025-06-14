@@ -59,10 +59,15 @@ class TestFlaskApp(unittest.TestCase):
                 {"role": "user", "content": "Second user message"}
             ]
         }
+        print("\n[TEST] Sending input messages to server:")
+        for msg in request_data["messages"]:
+            print(f"  {msg['role']}: {msg['content']}")
         resp = self.client.chat.completions.create(
             model=self.model,
             messages=request_data["messages"]
         )
+        print("[TEST] Server returned:")
+        print(f"  assistant: {resp.choices[0].message.content}\n")
         self.assertTrue(hasattr(resp, "choices"))
         self.assertIsInstance(resp.choices, list)
         self.assertTrue(hasattr(resp.choices[0], "message"))
@@ -76,10 +81,15 @@ class TestFlaskApp(unittest.TestCase):
                 {"role": "user", "content": "Test"}
             ]
         }
+        print("\n[TEST] Sending input messages to server:")
+        for msg in request_data["messages"]:
+            print(f"  {msg['role']}: {msg['content']}")
         resp = self.client.chat.completions.create(
             model=self.model,
             messages=request_data["messages"]
         )
+        print("[TEST] Server returned:")
+        print(f"  assistant: {resp.choices[0].message.content}\n")
         self.assertTrue(hasattr(resp, "choices"))
         self.assertIsInstance(resp.choices, list)
         self.assertTrue(hasattr(resp.choices[0], "message"))
