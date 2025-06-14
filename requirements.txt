@@ -2,3 +2,4 @@ flask
 litellm
 python-dotenv
 openai
+requests
