@@ -24,6 +24,19 @@ def chat_completions():
     iters = int(os.getenv("NUM_ITERS", "1"))
     iter_model = os.getenv("ITER_MODEL")
 
+    # Early return if no iterations requested
+    if iters <= 0:
+        return jsonify({
+            "choices": [
+                {
+                    "message": {
+                        "role": "assistant",
+                        "content": ""
+                    }
+                }
+            ]
+        })
+
     # copy original payload and swap in ITER_MODEL
     iter_payload = data.copy()
     iter_payload["model"] = iter_model
