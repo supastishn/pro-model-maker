@@ -109,3 +109,6 @@ class TestFlaskApp(unittest.TestCase):
         
         # Should skip parallel calls
         mock_completion.assert_not_called()
+
+if __name__ == '__main__':
+    unittest.main(verbosity=2)  # Show detailed test results
