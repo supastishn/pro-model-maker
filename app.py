@@ -20,6 +20,10 @@ def override_model_name(data):
 def chat_completions():
     data = request.json
 
+    # Warn if 'prompt' is present in chat completion payload
+    if 'prompt' in data:
+        print("Warning: Removing 'prompt' from chat completion payload to avoid API error.")
+
     # 1) run N parallel calls to the ITER_MODEL
     iters = int(os.getenv("NUM_ITERS", "1"))
     iter_model = os.getenv("ITER_MODEL")
@@ -40,6 +44,8 @@ def chat_completions():
     # copy original payload and swap in ITER_MODEL
     iter_payload = data.copy()
     iter_payload["model"] = iter_model
+    # Remove 'prompt' if present to avoid OpenAI/Router API error
+    iter_payload.pop("prompt", None)
     # expect this to be a chat completion with data["messages"]
     orig_messages = iter_payload.get("messages", [])
 
@@ -82,6 +88,8 @@ def chat_completions():
         "model": os.getenv("JUDGER_MODEL"),
         "messages": judger_msgs
     }
+    # Remove 'prompt' if present to avoid OpenAI/Router API error
+    judger_payload.pop("prompt", None)
     judger_response = completion(**judger_payload)
     return jsonify(judger_response)
 
