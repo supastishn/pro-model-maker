@@ -84,8 +84,10 @@ def chat_completions():
     ]
 
     # call JUDGER_MODEL once, return its answer
+    # Sequential Thinking: Use the model from the request as the judger model
+    judger_model = data.get("model", os.getenv("JUDGER_MODEL"))
     judger_payload = {
-        "model": os.getenv("JUDGER_MODEL"),
+        "model": judger_model,
         "messages": judger_msgs
     }
     # Remove 'prompt' if present to avoid OpenAI/Router API error
